@@ -6,7 +6,9 @@ import com.course.productservice.productcatelogservice.exceptions.ProductNotFoun
 import com.course.productservice.productcatelogservice.model.Product;
 import com.course.productservice.productcatelogservice.repository.ProductRepository;
 import com.course.productservice.productcatelogservice.service.ProductService;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,9 +16,11 @@ import java.util.Optional;
 @Service
 public class ProductServiceImp implements ProductService {
     private ProductRepository productRepository;
+    private RedisTemplate redisTemplate;
 
-    public ProductServiceImp(ProductRepository productRepository){
+    public ProductServiceImp(ProductRepository productRepository, RedisTemplate redisTemplate){
         this.productRepository = productRepository;
+        this.redisTemplate = redisTemplate;
     }
     @Override
     public Product saveProduct(Product product) throws ProductIsAlreadyExistException {
@@ -38,12 +42,28 @@ public class ProductServiceImp implements ProductService {
 
     @Override
     public Product getProductById(Long id) {
+        //first find product in the cache (redis)
+        Product cacheProduct = (Product) redisTemplate.opsForHash().get("PRODUCTS", "PRODUCT_" + id);
+        if(cacheProduct != null){
+            //cache hit
+            return cacheProduct;
+        }
+        //cache mis
         Optional<Product> productOptional = productRepository.findById(id);
         if(productOptional.isEmpty()){
             // throw exception product does not exist;
             throw new ProductNotFoundException(ErrorMessageConstants.PRODUCT_NOT_FOUND, id);
         }
-        return productOptional.get();
+
+        Product savedProduct = productOptional.get();
+        //store data in redis
+        /*
+        Map Name => PRODUCTS (key)
+        id => hashKey
+        value => product object
+        * */
+         redisTemplate.opsForHash().put("PRODUCTS", "PRODUCT_" + id, savedProduct);
+        return savedProduct;
     }
 
     @Override
