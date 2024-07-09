@@ -1,6 +1,7 @@
 package com.course.productservice.productcatelogservice.exceptions;
 
 import com.course.productservice.productcatelogservice.config.ProductConfig;
+import com.course.productservice.productcatelogservice.dtos.DBExceptionResponseDto;
 import com.course.productservice.productcatelogservice.dtos.ExceptionResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +31,14 @@ public class ExceptionHandlers {
         exceptionResponseDto.setErrorCode(HttpStatus.BAD_REQUEST.value());
         exceptionResponseDto.setId(e.getId());
         return new ResponseEntity<>(exceptionResponseDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DBEmptyException.class)
+    public ResponseEntity<DBExceptionResponseDto> handleDBEmptyException(DBEmptyException e){
+        DBExceptionResponseDto responseDto = productConfig.getDBExcepitonResponseDtoInstance();
+        responseDto.setErrorMessage(e.getMessage());
+        responseDto.setErrorCode(HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
+
     }
 }

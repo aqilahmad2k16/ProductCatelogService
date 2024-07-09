@@ -41,6 +41,16 @@ public class ProductController {
         return new ResponseEntity<>(products, HttpStatus.ACCEPTED);
     }
 
+    /*
+    * I am going to create api that will save all product form DB to redis cache
+    * */
+
+    @PostMapping("/allproducttocache")
+    public ResponseEntity<List<Product>> saveAllProductToCache(){
+        List<Product> products = productService.saveAllProductToCache();
+        return new ResponseEntity<>(products, HttpStatus.ACCEPTED);
+    }
+
     /**
      * Update api
      */

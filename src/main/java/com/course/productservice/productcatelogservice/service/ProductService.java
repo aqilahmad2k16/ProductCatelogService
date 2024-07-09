@@ -12,4 +12,6 @@ public interface ProductService {
     Product getProductById(Long id);
 
     List<Product> getAllProduct();
+
+    List<Product> saveAllProductToCache();
 }
